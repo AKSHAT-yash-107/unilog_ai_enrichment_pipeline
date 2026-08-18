@@ -4,6 +4,7 @@ from src.normalization.extract_baseline import extract_baseline_features
 from src.normalization.vocabulary import analyze_description_vocabulary
 from src.normalization.vocabulary import analyze_description_phrases
 from src.profiler import profile_products
+from src.classification.classifier import classify_products
 
 
 def main():
@@ -13,25 +14,25 @@ def main():
 
     products = extract_baseline_features(products)
 
-    print("\n========== BASELINE EXTRACTION ==========")
+    products = classify_products(products)
+
+    print("\n========== DOMAIN DISTRIBUTION ==========")
 
     print(
-        products[
-            [
-                "Mfg_Part_Num",
-                "Part_Desc",
-                "extracted_quantity",
-                "extracted_grit",
-                "extracted_size",
-            ]
-        ].head(20).to_string(index=False)
+        products["product_domain"]
+        .value_counts(dropna=False)
     )
 
-    profile_products(products)
+    print("\n========== UNKNOWN PRODUCTS ==========")
 
-    analyze_description_vocabulary(products)
-    analyze_description_phrases(products)
+    unknown = products[
+        products["product_domain"] == "unknown"
+        ]
 
-
+    print(
+        unknown[
+            ["Mfg_Part_Num", "Part_Desc"]
+        ].head(50).to_string(index=False)
+    )
 if __name__ == "__main__":
     main()
